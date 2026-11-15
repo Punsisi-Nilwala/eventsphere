@@ -1,5 +1,9 @@
 # EventSphere - agent-based venue booking & digital ticketing (IT4123 ICA 02)
 
+## Live demo
+**Live URL:** https://eventsphere-jc69.onrender.com
+(Free hosting may sleep. The first load can take up to a minute.)
+
 FastAPI + SQLAlchemy + Jinja/Bootstrap. Every booking, hire, refund and check-in decision is made by five
 cooperating agents that talk **only** through JSON messages on a message bus (`app/bus.py`).
 
@@ -10,7 +14,7 @@ pip install -r requirements.txt
 cp .env.example .env                                   # optional; defaults work with SQLite
 uvicorn app.main:app --reload
 ```
-Open http://127.0.0.1:8000 . Demo data and accounts are created automatically on first start (`SEED_DEMO=1`).
+When the server is running, open `http://127.0.0.1:8000` in your browser (this address only works on your own computer while the server is running; the deployed version is at the Live URL above).
 
 ## Environment variables
 | Name | Purpose | Default |
