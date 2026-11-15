@@ -1,0 +1,25 @@
+{% extends "base.html" %}{% block title %}My bookings{% endblock %}
+{% block content %}
+<h3>My bookings</h3>
+<div class="table-responsive"><table class="table table-sm bg-white">
+<tr><th>#</th><th>Event</th><th>Tickets</th><th>Total</th><th>Status</th><th></th></tr>
+{% for b in bookings %}<tr><td>{{ b.id }}</td><td>{{ b.event.title }}<br><small class="text-muted">{{ b.event.start.strftime('%d %b %H:%M') }}</small></td>
+<td>{{ b.quantity }} x {{ b.category.name }}</td><td>LKR {{ '%.2f'|format(b.total) }}{% if b.refund_amount %}<br><small>refunded {{ '%.2f'|format(b.refund_amount) }}</small>{% endif %}</td>
+<td><span class="badge text-bg-{{ 'success' if b.status=='confirmed' else 'secondary' }}">{{ b.status }}</span></td>
+<td><a class="btn btn-sm btn-outline-primary" href="/bookings/{{ b.id }}">Tickets</a></td></tr>
+{% else %}<tr><td colspan="6" class="text-muted">No bookings yet.</td></tr>{% endfor %}
+</table></div>
+<h4 class="mt-4">Waitlist</h4>
+<div class="table-responsive"><table class="table table-sm bg-white">
+<tr><th>Event</th><th>Qty</th><th>Status</th><th></th></tr>
+{% for w in entries %}<tr><td>{{ w.event.title }} ({{ w.category.name }})</td><td>{{ w.quantity }}</td>
+<td>{{ w.status }}{% if w.status=='offered' %}<br><strong class="text-danger countdown" data-secs="{{ ((w.offer_expires - now).total_seconds())|int }}"></strong>{% endif %}</td>
+<td>{% if w.status=='offered' %}<form method="post" action="/waitlist/{{ w.id }}/claim"><input type="hidden" name="csrf_token" value="{{ csrf }}"><button class="btn btn-sm btn-success">Claim seats</button></form>{% endif %}</td></tr>
+{% else %}<tr><td colspan="4" class="text-muted">You are not on any waitlist.</td></tr>{% endfor %}
+</table></div>
+{% endblock %}
+{% block scripts %}<script>
+document.querySelectorAll('.countdown').forEach(el=>{let s=parseInt(el.dataset.secs);
+ const t=()=>{ if(s<=0){el.textContent='expired - refresh';return;} el.textContent='Hold ends in '+Math.floor(s/60)+'m '+String(s%60).padStart(2,'0')+'s'; s--; };
+ t(); setInterval(t,1000);});
+</script>{% endblock %}

@@ -1,0 +1,36 @@
+{% extends "base.html" %}{% block title %}Scanner{% endblock %}
+{% block content %}
+<h3>Ticket scanner</h3>
+<div class="card card-body mb-3">
+ <label class="form-label">Event</label>
+ <select id="event" class="form-select mb-2">{% for e in events %}<option value="{{ e.id }}">{{ e.title }} - {{ e.start.strftime('%d %b %H:%M') }}</option>{% endfor %}</select>
+ <div id="reader" style="max-width:420px;width:100%"></div>
+ <button id="startBtn" class="btn btn-primary mt-2">Start camera</button>
+ <hr>
+ <label class="form-label">Manual code entry (fallback)</label>
+ <div class="input-group"><input id="code" class="form-control" placeholder="Paste or type ticket code"><button id="manual" class="btn btn-secondary">Check</button></div>
+</div>
+<div id="result" class="alert d-none fs-5"></div>
+{% endblock %}
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script>
+const csrf = "{{ csrf }}";
+const box = document.getElementById('result');
+let busy = false;
+async function check(code){
+  if(busy || !code) return; busy = true;
+  const fd = new FormData(); fd.append('csrf_token', csrf); fd.append('code', code); fd.append('event_id', document.getElementById('event').value);
+  try{
+    const r = await fetch('/staff/scan', {method:'POST', body: fd}); const j = await r.json();
+    box.className = 'alert fs-5 ' + (j.ok ? 'alert-success' : 'alert-danger'); box.textContent = j.message;
+  }catch(e){ box.className='alert alert-warning fs-5'; box.textContent='Network error'; }
+  setTimeout(()=>busy=false, 2000);
+}
+document.getElementById('manual').onclick = ()=>check(document.getElementById('code').value.trim());
+document.getElementById('startBtn').onclick = ()=>{
+  const q = new Html5Qrcode('reader');
+  q.start({facingMode:'environment'}, {fps:10, qrbox:240}, txt=>check(txt)).catch(e=>{box.className='alert alert-warning'; box.textContent='Camera unavailable - use manual entry.';});
+};
+</script>
+{% endblock %}

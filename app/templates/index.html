@@ -1,0 +1,30 @@
+{% extends "base.html" %}{% block title %}Events{% endblock %}
+{% block content %}
+<h3>Upcoming events</h3>
+<form class="card card-body mb-3" method="get" action="/">
+ <div class="row g-2">
+  <div class="col-12 col-md-4"><input class="form-control" name="q" placeholder="Search keyword" value="{{ f.q }}"></div>
+  <div class="col-6 col-md-2"><select class="form-select" name="category"><option value="">All categories</option>
+    {% for c in cats %}<option {% if f.category==c %}selected{% endif %}>{{ c }}</option>{% endfor %}</select></div>
+  <div class="col-6 col-md-2"><select class="form-select" name="venue"><option value="">All venues</option>
+    {% for v in venues %}<option value="{{ v.id }}" {% if f.venue==v.id|string %}selected{% endif %}>{{ v.name }}</option>{% endfor %}</select></div>
+  <div class="col-6 col-md-2"><input class="form-control" type="date" name="date_from" value="{{ f.date_from }}" title="From date"></div>
+  <div class="col-6 col-md-2"><input class="form-control" type="date" name="date_to" value="{{ f.date_to }}" title="To date"></div>
+  <div class="col-6 col-md-3"><input class="form-control" type="number" min="0" name="max_price" placeholder="Max price (LKR)" value="{{ f.max_price }}"></div>
+  <div class="col-6 col-md-2"><button class="btn btn-primary w-100">Filter</button></div>
+ </div>
+</form>
+<div class="row g-3">
+{% for e in events %}
+ <div class="col-12 col-md-6 col-lg-4"><div class="card h-100">
+  {% if e.venue.image_url %}<img src="{{ e.venue.image_url }}" class="card-img-top" alt="" style="max-height:160px;object-fit:cover">{% endif %}
+  <div class="card-body">
+   <span class="badge text-bg-secondary">{{ e.category }}</span>
+   <h5 class="mt-1">{{ e.title }}</h5>
+   <p class="text-muted mb-1">{{ e.start.strftime('%a %d %b %Y, %H:%M') }}<br>{{ e.venue.name }}</p>
+   <p class="small">From LKR {{ '%.0f'|format(e.categories|map(attribute='price')|min) if e.categories else '-' }}</p>
+   <a class="btn btn-sm btn-primary" href="/events/{{ e.id }}">View &amp; book</a>
+  </div></div></div>
+{% else %}<p class="text-muted">No events match your search.</p>{% endfor %}
+</div>
+{% endblock %}

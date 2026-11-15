@@ -1,0 +1,37 @@
+{% extends "base.html" %}{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+ <h3>Organiser dashboard</h3>
+ <div class="d-flex gap-2">
+  {% if pending %}<a class="btn btn-warning btn-sm" href="/admin/hire">{{ pending }} hire request(s) need approval</a>{% endif %}
+  <form method="post" action="/admin/sweep"><input type="hidden" name="csrf_token" value="{{ csrf }}"><button class="btn btn-outline-secondary btn-sm">Run waitlist sweep now</button></form>
+ </div>
+</div>
+<div class="table-responsive mt-2"><table class="table table-sm bg-white">
+<tr><th>Event</th><th>Status</th><th>Sold / capacity</th><th>Revenue (LKR, simulated)</th><th>Check-ins</th></tr>
+{% for r in rows %}<tr><td>{{ r.ev.title }}<br><small class="text-muted">{{ r.ev.start.strftime('%d %b %H:%M') }}</small></td><td>{{ r.ev.status }}</td>
+<td>{{ r.sold }} / {{ r.capacity }}<div class="progress" style="height:6px"><div class="progress-bar" style="width:{{ (100*r.sold/r.capacity)|round if r.capacity else 0 }}%"></div></div></td>
+<td>{{ '%.2f'|format(r.revenue) }}</td><td>{{ r.checkins }}</td></tr>
+{% else %}<tr><td colspan="5" class="text-muted">No events yet.</td></tr>{% endfor %}
+</table></div>
+<div class="row g-3">
+ <div class="col-12 col-md-6"><div class="card card-body"><h6>Tickets sold per event</h6><canvas id="sales"></canvas></div></div>
+ <div class="col-12 col-md-6"><div class="card card-body"><h6>Check-ins over time</h6><canvas id="checkins"></canvas></div></div>
+</div>
+<h5 class="mt-4">Agent beliefs (persistent state)</h5>
+<div class="row g-2">
+{% for agent, kv in state.items() %}<div class="col-12 col-md-6 col-lg-3"><div class="card card-body"><strong>{{ agent }}</strong>
+{% for k, v in kv.items() %}<div class="small">{{ k }}: <strong>{{ v or 0 }}</strong></div>{% endfor %}</div></div>{% endfor %}
+</div>
+<p class="mt-3"><a href="/admin/messages">Open full agent message log &raquo;</a></p>
+{% endblock %}
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+const rows = {{ rows|map(attribute='ev')|map(attribute='title')|list|tojson }};
+const sold = {{ rows|map(attribute='sold')|list|tojson }};
+new Chart(document.getElementById('sales'), {type:'bar', data:{labels:rows, datasets:[{label:'Tickets sold', data:sold}]}});
+const h = {{ hourly|tojson }};
+new Chart(document.getElementById('checkins'), {type:'line', data:{labels:Object.keys(h), datasets:[{label:'Check-ins', data:Object.values(h)}]}});
+</script>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "base.html" %}{% block title %}Booking #{{ b.id }}{% endblock %}
+{% block content %}
+<h3>{{ b.event.title }}</h3>
+<p class="text-muted">{{ b.event.start.strftime('%a %d %b %Y, %H:%M') }} &middot; {{ b.event.venue.name }}<br>
+Booking #{{ b.id }} &middot; {{ b.quantity }} x {{ b.category.name }} &middot; LKR {{ '%.2f'|format(b.total) }} &middot; Payment ref <code>{{ b.payment_ref }}</code> (simulated)<br>
+Status: <span class="badge text-bg-{{ 'success' if b.status=='confirmed' else 'secondary' }}">{{ b.status }}</span>
+{% if b.status=='cancelled' %} &middot; Refund LKR {{ '%.2f'|format(b.refund_amount) }}{% endif %}</p>
+{% if b.status == 'confirmed' and b.event.start > now %}
+<form method="post" action="/bookings/{{ b.id }}/cancel" class="mb-3" onsubmit="return confirm('Cancel this booking?')">
+ <input type="hidden" name="csrf_token" value="{{ csrf }}">
+ <button class="btn btn-outline-danger btn-sm">Cancel booking</button>
+ <small class="text-muted d-block">Refund policy: 100% if 72 h or more before start, 50% from 24 to 72 h, 0% under 24 h.</small>
+</form>{% endif %}
+<div class="row g-3">
+{% for t in b.tickets %}
+ <div class="col-12 col-sm-6 col-md-4"><div class="card text-center"><div class="card-body">
+  <img class="qr img-fluid" src="/qr/{{ t.code }}.svg" alt="QR code">
+  <p class="mb-0 mt-2">Ticket {{ loop.index }} <span class="badge text-bg-{{ 'success' if t.status=='valid' else 'secondary' }}">{{ t.status }}</span></p>
+ </div></div></div>
+{% endfor %}
+</div>
+{% endblock %}

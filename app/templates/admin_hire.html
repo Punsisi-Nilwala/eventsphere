@@ -1,0 +1,16 @@
+{% extends "base.html" %}{% block title %}Hire requests{% endblock %}
+{% block content %}
+<h3>Venue hire requests</h3>
+<div class="table-responsive"><table class="table table-sm bg-white">
+<tr><th>#</th><th>Customer</th><th>Venue</th><th>When</th><th>Guests</th><th>Price</th><th>Status</th><th></th></tr>
+{% for h in reqs %}<tr><td>{{ h.id }}</td><td>{{ h.user.name }}<br><small class="text-muted">{{ h.purpose }}</small></td><td>{{ h.venue.name }}</td>
+<td>{{ h.start.strftime('%d %b %H:%M') }} - {{ h.end.strftime('%H:%M') }}</td><td>{{ h.guests }}</td><td>{{ '%.2f'|format(h.price) }}</td>
+<td>{{ h.status }}<br><small>{{ h.reason }}</small></td>
+<td>{% if h.status == 'pending' %}
+ <form method="post" action="/admin/hire/{{ h.id }}/decide" class="d-flex gap-1 flex-wrap"><input type="hidden" name="csrf_token" value="{{ csrf }}">
+  <input class="form-control form-control-sm" name="note" placeholder="Note (optional)" style="min-width:140px">
+  <button class="btn btn-sm btn-success" name="decision" value="approve">Approve</button>
+  <button class="btn btn-sm btn-danger" name="decision" value="reject">Reject</button></form>{% endif %}</td></tr>
+{% else %}<tr><td colspan="8" class="text-muted">No requests.</td></tr>{% endfor %}
+</table></div>
+{% endblock %}

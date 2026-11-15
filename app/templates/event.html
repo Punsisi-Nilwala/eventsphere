@@ -1,0 +1,38 @@
+{% extends "base.html" %}{% block title %}{{ ev.title }}{% endblock %}
+{% block content %}
+<div class="row g-3">
+ <div class="col-12 col-md-7">
+  {% if ev.venue.image_url %}<img src="{{ ev.venue.image_url }}" class="img-fluid rounded mb-2" alt="">{% endif %}
+  <span class="badge text-bg-secondary">{{ ev.category }}</span>
+  {% if ev.status != 'published' %}<span class="badge text-bg-warning">{{ ev.status }}</span>{% endif %}
+  <h2>{{ ev.title }}</h2>
+  <p class="text-muted">{{ ev.start.strftime('%a %d %b %Y, %H:%M') }} &ndash; {{ ev.end.strftime('%H:%M') }}<br>{{ ev.venue.name }}, {{ ev.venue.location }}</p>
+  <p>{{ ev.description }}</p>
+ </div>
+ <div class="col-12 col-md-5">
+  {% for c in ev.categories %}
+  <div class="card mb-2"><div class="card-body">
+   <h5 class="mb-1">{{ c.name }} <small class="text-muted">LKR {{ '%.2f'|format(c.price) }}</small></h5>
+   <p class="mb-2">{% if c.available > 0 %}<span class="badge text-bg-success">{{ c.available }} left</span>{% else %}<span class="badge text-bg-danger">Sold out</span>{% endif %}</p>
+   {% if ev.status == 'published' and ev.start > now %}
+     {% if user %}
+       {% if c.available > 0 %}
+       <form method="post" action="/events/{{ ev.id }}/book" class="d-flex gap-2">
+         <input type="hidden" name="csrf_token" value="{{ csrf }}"><input type="hidden" name="category_id" value="{{ c.id }}">
+         <input class="form-control" style="max-width:90px" type="number" name="quantity" min="1" max="6" value="1">
+         <button class="btn btn-primary">Pay &amp; book (simulated)</button>
+       </form>
+       {% else %}
+       <form method="post" action="/events/{{ ev.id }}/waitlist" class="d-flex gap-2">
+         <input type="hidden" name="csrf_token" value="{{ csrf }}"><input type="hidden" name="category_id" value="{{ c.id }}">
+         <input class="form-control" style="max-width:90px" type="number" name="quantity" min="1" max="6" value="1">
+         <button class="btn btn-outline-primary">Join waitlist</button>
+       </form>
+       {% endif %}
+     {% else %}<a href="/login">Sign in to book</a>{% endif %}
+   {% else %}<span class="text-muted">Booking is closed</span>{% endif %}
+  </div></div>
+  {% endfor %}
+ </div>
+</div>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends "base.html" %}{% block title %}Events admin{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between"><h3>Events</h3><a class="btn btn-primary btn-sm" href="/admin/events/new">New event</a></div>
+<div class="table-responsive"><table class="table table-sm bg-white">
+<tr><th>Event</th><th>Venue</th><th>When</th><th>Status</th><th>Tickets</th><th></th></tr>
+{% for e in events %}<tr><td>{{ e.title }}</td><td>{{ e.venue.name }}</td><td>{{ e.start.strftime('%d %b %H:%M') }}</td>
+<td><span class="badge text-bg-{{ 'success' if e.status=='published' else 'secondary' if e.status=='draft' else 'danger' }}">{{ e.status }}</span></td>
+<td>{% for c in e.categories %}<div class="small">{{ c.name }}: {{ c.sold }}/{{ c.quantity }}</div>{% endfor %}</td>
+<td class="text-nowrap">
+ <a class="btn btn-sm btn-outline-primary" href="/admin/events/{{ e.id }}/edit">Edit</a>
+ {% if e.status == 'draft' %}<form class="d-inline" method="post" action="/admin/events/{{ e.id }}/publish"><input type="hidden" name="csrf_token" value="{{ csrf }}"><button class="btn btn-sm btn-success">Publish</button></form>{% endif %}
+ {% if e.status != 'cancelled' %}<form class="d-inline" method="post" action="/admin/events/{{ e.id }}/cancel" onsubmit="return confirm('Cancel this event and refund all bookings?')"><input type="hidden" name="csrf_token" value="{{ csrf }}"><button class="btn btn-sm btn-outline-danger">Cancel</button></form>{% endif %}
+</td></tr>{% endfor %}
+</table></div>
+{% endblock %}

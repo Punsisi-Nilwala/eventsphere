@@ -1,0 +1,36 @@
+{% extends "base.html" %}{% block title %}Venue hire{% endblock %}
+{% block content %}
+<h3>Private venue hire</h3>
+{% if result %}
+ {% if result.kind == 'AGREE' %}<div class="alert alert-success"><strong>Confirmed.</strong> Price: LKR {{ '%.2f'|format(result.price) }}. {{ result.reason }}</div>
+ {% elif result.decision == 'escalated' %}<div class="alert alert-info"><strong>Sent to admin for approval.</strong> Estimated price: LKR {{ '%.2f'|format(result.price) }}. {{ result.reason }}</div>
+ {% else %}
+  <div class="alert alert-warning"><strong>{{ 'Alternatives available' if result.kind=='PROPOSE' else 'Not possible' }}:</strong> {{ result.reason }}</div>
+  {% if result.alternatives %}<div class="list-group mb-3">
+   {% for a in result.alternatives %}
+   <a class="list-group-item list-group-item-action" href="/hire?venue_id={{ a.venue_id }}&start={{ a.start }}&end={{ a.end }}&guests={{ form.guests }}&purpose={{ form.purpose|urlencode }}">
+    <strong>{{ a.venue }}</strong> &middot; {{ a.start.replace('T',' ') }} &ndash; {{ a.end[11:] }} &middot; LKR {{ '%.2f'|format(a.price) }}<br><small class="text-muted">{{ a.note }} - tap to request this</small></a>
+   {% endfor %}</div>{% endif %}
+ {% endif %}
+{% endif %}
+<form method="post" action="/hire" class="card card-body mb-4">
+ <input type="hidden" name="csrf_token" value="{{ csrf }}">
+ <div class="row g-2">
+  <div class="col-12 col-md-4"><label class="form-label">Venue</label><select class="form-select" name="venue_id" required>
+   {% for v in venues %}<option value="{{ v.id }}" {% if form.venue_id|string==v.id|string %}selected{% endif %}>{{ v.name }} (cap {{ v.capacity }}, LKR {{ '%.0f'|format(v.hourly_rate) }}/h)</option>{% endfor %}</select></div>
+  <div class="col-6 col-md-3"><label class="form-label">Start</label><input class="form-control" type="datetime-local" name="start" value="{{ form.start }}" required></div>
+  <div class="col-6 col-md-3"><label class="form-label">End</label><input class="form-control" type="datetime-local" name="end" value="{{ form.end }}" required></div>
+  <div class="col-12 col-md-2"><label class="form-label">Guests</label><input class="form-control" type="number" min="1" name="guests" value="{{ form.guests }}" required></div>
+  <div class="col-12"><label class="form-label">Purpose</label><input class="form-control" name="purpose" value="{{ form.purpose }}" placeholder="Farewell, reception, club meeting..."></div>
+  <div class="col-12"><button class="btn btn-primary">Request venue</button>
+   <small class="text-muted ms-2">Weekends cost 25% more; time after 18:00 costs 15% more.</small></div>
+ </div>
+</form>
+<h5>My hire requests</h5>
+<div class="table-responsive"><table class="table table-sm bg-white">
+<tr><th>Venue</th><th>When</th><th>Guests</th><th>Price</th><th>Status</th></tr>
+{% for h in mine %}<tr><td>{{ h.venue.name }}</td><td>{{ h.start.strftime('%d %b %H:%M') }} - {{ h.end.strftime('%H:%M') }}</td><td>{{ h.guests }}</td><td>LKR {{ '%.2f'|format(h.price) }}</td>
+<td><span class="badge text-bg-{{ 'success' if h.status=='confirmed' else 'warning' if h.status=='pending' else 'danger' }}">{{ h.status }}</span><br><small>{{ h.reason }}</small></td></tr>
+{% else %}<tr><td colspan="5" class="text-muted">No requests yet.</td></tr>{% endfor %}
+</table></div>
+{% endblock %}

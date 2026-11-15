@@ -1,0 +1,8 @@
+{% extends "base.html" %}{% block title %}Notifications{% endblock %}
+{% block content %}
+<h3>Notifications</h3>
+<ul class="list-group">
+{% for n in items %}<li class="list-group-item"><small class="text-muted">{{ n.created_at.strftime('%d %b %H:%M') }}</small><br>{{ n.message }}</li>
+{% else %}<li class="list-group-item text-muted">Nothing yet.</li>{% endfor %}
+</ul>
+{% endblock %}

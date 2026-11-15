@@ -1,0 +1,9 @@
+{% extends "base.html" %}{% block title %}Venues{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between"><h3>Venues</h3><a class="btn btn-primary btn-sm" href="/admin/venues/new">New venue</a></div>
+<div class="table-responsive"><table class="table table-sm bg-white">
+<tr><th>Name</th><th>Location</th><th>Capacity</th><th>Rate/h</th><th>Hire</th><th></th></tr>
+{% for v in venues %}<tr><td>{{ v.name }}</td><td>{{ v.location }}</td><td>{{ v.capacity }}</td><td>{{ '%.0f'|format(v.hourly_rate) }}</td><td>{{ 'open' if v.open_for_hire else '-' }}</td>
+<td><a class="btn btn-sm btn-outline-primary" href="/admin/venues/{{ v.id }}/edit">Edit</a></td></tr>{% endfor %}
+</table></div>
+{% endblock %}
